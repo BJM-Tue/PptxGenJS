@@ -1,4 +1,4 @@
-/* PptxGenJS 3.13.0-beta.0 @ 2023-05-17T03:15:58.384Z */
+/* PptxGenJS 3.13.0-beta.1 @ 2024-11-18T09:15:22.992Z */
 'use strict';
 
 var JSZip = require('jszip');
@@ -831,31 +831,67 @@ function createGlowElement(options, defaults) {
  * @returns XML string
  */
 function genXmlColorSelection(props) {
-    var fillType = 'solid';
-    var colorVal = '';
-    var internalElements = '';
+    var _a, _b, _c, _d, _e, _f, _g;
+    if (!props) {
+        return '';
+    }
     var outText = '';
-    if (props) {
-        if (typeof props === 'string')
-            colorVal = props;
-        else {
-            if (props.type)
-                fillType = props.type;
-            if (props.color)
-                colorVal = props.color;
-            if (props.alpha)
-                internalElements += "<a:alpha val=\"".concat(Math.round((100 - props.alpha) * 1000), "\"/>"); // DEPRECATED: @deprecated v3.3.0
-            if (props.transparency)
-                internalElements += "<a:alpha val=\"".concat(Math.round((100 - props.transparency) * 1000), "\"/>");
+    var safeProps = {};
+    if (typeof props === 'string') {
+        safeProps.type = 'solid';
+        safeProps.color = props;
+    }
+    else {
+        safeProps = props;
+        safeProps.type = (_a = props.type) !== null && _a !== void 0 ? _a : 'solid';
+    }
+    switch (safeProps.type) {
+        case 'solid': {
+            var transparency = (_b = safeProps.transparency) !== null && _b !== void 0 ? _b : safeProps.alpha;
+            var internalElements = transparency
+                ? "<a:alpha val=\"".concat(Math.round((100 - transparency) * 1000), "\"/>")
+                : undefined;
+            outText += "<a:solidFill>".concat(createColorElement((_c = safeProps.color) !== null && _c !== void 0 ? _c : '', internalElements), "</a:solidFill>");
+            break;
         }
-        switch (fillType) {
-            case 'solid':
-                outText += "<a:solidFill>".concat(createColorElement(colorVal, internalElements), "</a:solidFill>");
-                break;
-            default: // @note need a statement as having only "break" is removed by rollup, then tiggers "no-default" js-linter
-                outText += '';
-                break;
+        case 'linearGradient': {
+            var stops = (_d = safeProps.stops) !== null && _d !== void 0 ? _d : [];
+            var rotWithShape = (_e = safeProps.rotWithShape) !== null && _e !== void 0 ? _e : true;
+            var flip = (_f = safeProps.flip) !== null && _f !== void 0 ? _f : 'none';
+            outText += "<a:gradFill rotWithShape=\"".concat(rotWithShape ? 1 : 0, "\" flip=\"").concat(flip, "\">");
+            if (stops.length > 0) {
+                outText += '<a:gsLst>';
+                outText += stops.map(function (_a) {
+                    var position = _a.position, stopColor = _a.color, transparency = _a.transparency;
+                    var stopInternalElements = transparency
+                        ? "<a:alpha val=\"".concat(Math.round((100 - transparency) * 1000), "\"/>")
+                        : '';
+                    return "<a:gs pos=\"".concat(position * 1000, "\">").concat(createColorElement(stopColor, stopInternalElements), "</a:gs>");
+                }).join('');
+                outText += '</a:gsLst>';
+            }
+            if (safeProps.angle) {
+                var ang = convertRotationDegrees(safeProps.angle);
+                var scaled = (_g = safeProps.scaled) !== null && _g !== void 0 ? _g : false;
+                outText += "<a:lin ang=\"".concat(ang, "\" scaled=\"").concat(scaled ? 1 : 0, "\"/>");
+            }
+            if (safeProps.tileRect &&
+                (safeProps.tileRect.t ||
+                    safeProps.tileRect.r ||
+                    safeProps.tileRect.b ||
+                    safeProps.tileRect.l)) {
+                var tAttr = safeProps.tileRect.t ? "t=\"".concat(safeProps.tileRect.t * 1000, "\"") : '';
+                var rAttr = safeProps.tileRect.r ? "r=\"".concat(safeProps.tileRect.r * 1000, "\"") : '';
+                var bAttr = safeProps.tileRect.b ? "b=\"".concat(safeProps.tileRect.b * 1000, "\"") : '';
+                var lAttr = safeProps.tileRect.l ? "l=\"".concat(safeProps.tileRect.l * 1000, "\"") : '';
+                outText += "<a:tileRect ".concat(tAttr, " ").concat(rAttr, " ").concat(bAttr, " ").concat(lAttr, "/>");
+            }
+            outText += '</a:gradFill>';
+            break;
         }
+        default: // @note need a statement as having only "break" is removed by rollup, then tiggers "no-default" js-linter
+            outText += '';
+            break;
     }
     return outText;
 }
@@ -1921,8 +1957,14 @@ function addChartDefinition(target, type, data, opt) {
     if (options.border)
         options.plotArea.border = options.border; // @deprecated [[remove in v4.0]]
     options.plotArea.fill = options.plotArea.fill || { color: null, transparency: null };
-    if (options.fill)
-        options.plotArea.fill.color = options.fill; // @deprecated [[remove in v4.0]]
+    if (options.fill) {
+        var fill = {
+            type: 'solid',
+            color: options.fill,
+            transparency: null,
+        };
+        options.plotArea.fill = fill;
+    }
     //
     options.chartArea = options.chartArea || {};
     options.chartArea.border = options.chartArea.border && typeof options.chartArea.border === 'object' ? options.chartArea.border : null;
@@ -2488,9 +2530,9 @@ function addTableDefinition(target, tableRows, options, slideLayout, presLayout,
         opt.x = inch2Emu(opt.x);
     if (opt.y && opt.y < 20)
         opt.y = inch2Emu(opt.y);
-    if (opt.w && opt.w < 20)
+    if (opt.w && typeof opt.w === 'number' && opt.w < 20)
         opt.w = inch2Emu(opt.w);
-    if (opt.h && opt.h < 20)
+    if (opt.h && typeof opt.h === 'number' && opt.h < 20)
         opt.h = inch2Emu(opt.h);
     // STEP 5: Loop over cells: transform each to ITableCell; check to see whether to unset `autoPage` while here
     arrRows.forEach(function (row) {
@@ -2821,8 +2863,9 @@ var Slide = /** @class */ (function () {
             return this._bkgd;
         },
         set: function (value) {
+            var _a;
             this._bkgd = value;
-            if (!this._background || !this._background.color) {
+            if (!((_a = this._background) === null || _a === void 0 ? void 0 : _a.color)) {
                 if (!this._background)
                     this._background = {};
                 if (typeof value === 'string')
@@ -3460,7 +3503,7 @@ function createExcelWorksheet(chartObject, zip) {
  * @return {string} XML
  */
 function makeXmlCharts(rel) {
-    var _a, _b, _c, _d;
+    var _a, _b;
     var strXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
     var usesSecondaryValAxis = false;
     // STEP 1: Create chart
@@ -3595,7 +3638,9 @@ function makeXmlCharts(rel) {
         }
         strXml += '  <c:spPr>';
         // OPTION: Fill
-        strXml += ((_c = rel.opts.plotArea.fill) === null || _c === void 0 ? void 0 : _c.color) ? genXmlColorSelection(rel.opts.plotArea.fill) : '<a:noFill/>';
+        strXml += rel.opts.plotArea.fill.type === 'solid' || rel.opts.plotArea.fill.type === 'linearGradient'
+            ? genXmlColorSelection(rel.opts.plotArea.fill)
+            : '<a:noFill/>';
         // OPTION: Border
         strXml += rel.opts.plotArea.border
             ? "<a:ln w=\"".concat(valToPts(rel.opts.plotArea.border.pt), "\" cap=\"flat\">").concat(genXmlColorSelection(rel.opts.plotArea.border.color), "</a:ln>")
@@ -3640,7 +3685,9 @@ function makeXmlCharts(rel) {
     strXml += '</c:chart>';
     // D: CHARTSPACE SHAPE PROPS
     strXml += '<c:spPr>';
-    strXml += ((_d = rel.opts.chartArea.fill) === null || _d === void 0 ? void 0 : _d.color) ? genXmlColorSelection(rel.opts.chartArea.fill) : '<a:noFill/>';
+    strXml += rel.opts.chartArea.fill.type === 'solid' || rel.opts.chartArea.fill.type === 'linearGradient'
+        ? genXmlColorSelection(rel.opts.chartArea.fill)
+        : '<a:noFill/>';
     strXml += rel.opts.chartArea.border
         ? "<a:ln w=\"".concat(valToPts(rel.opts.chartArea.border.pt), "\" cap=\"flat\">").concat(genXmlColorSelection(rel.opts.chartArea.border.color), "</a:ln>")
         : '<a:ln><a:noFill/></a:ln>';
