@@ -251,10 +251,15 @@ export function genXmlColorSelection (props: Color | ShapeFillProps | ShapeLineP
 				outText += `<a:lin ang="${ang}" scaled="${scaled ? 1 : 0}"/>`
 			}
 
-			if (safeProps.type === 'radialGradient' && safeProps.radial) {
-				const { x, y, cx, cy } = safeProps.radial;
-				const scaled = safeProps.scaled ?? false
-				outText += `<a:radial scaled="${scaled ? 1 : 0}"><a:off x="${Math.round(x * 1000)}" y="${Math.round(y * 1000)}"/><a:ext cx="${Math.round(cx * 1000)}" cy="${Math.round(cy * 1000)}"/></a:radial>`;
+			if (safeProps.type === 'radialGradient' && safeProps.fillToRect) {
+				const tAttr = safeProps.fillToRect.t ? `t="${safeProps.fillToRect.t * 1000}"` : ''
+				const rAttr = safeProps.fillToRect.r ? `r="${safeProps.fillToRect.r * 1000}"` : ''
+				const bAttr = safeProps.fillToRect.b ? `b="${safeProps.fillToRect.b * 1000}"` : ''
+				const lAttr = safeProps.fillToRect.l ? `l="${safeProps.fillToRect.l * 1000}"` : ''
+
+				outText += `<a:path path="circle">`
+				outText += `<a:fillToRect ${tAttr} ${rAttr} ${bAttr} ${lAttr}/>`
+				outText += `</a:path>`
 			}
 
 			if (

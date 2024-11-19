@@ -1,4 +1,4 @@
-/* PptxGenJS 3.13.0-beta.1 @ 2024-11-19T10:43:13.510Z */
+/* PptxGenJS 3.13.0-beta.1 @ 2024-11-19T16:58:05.082Z */
 'use strict';
 
 var JSZip = require('jszip');
@@ -831,7 +831,7 @@ function createGlowElement(options, defaults) {
  * @returns XML string
  */
 function genXmlColorSelection(props) {
-    var _a, _b, _c, _d, _e, _f, _g, _h;
+    var _a, _b, _c, _d, _e, _f, _g;
     if (!props) {
         return '';
     }
@@ -885,10 +885,14 @@ function genXmlColorSelection(props) {
                 var scaled = (_g = safeProps.scaled) !== null && _g !== void 0 ? _g : false;
                 outText += "<a:lin ang=\"".concat(ang, "\" scaled=\"").concat(scaled ? 1 : 0, "\"/>");
             }
-            if (safeProps.type === 'radialGradient' && safeProps.radial) {
-                var _j = safeProps.radial, x = _j.x, y = _j.y, cx = _j.cx, cy = _j.cy;
-                var scaled = (_h = safeProps.scaled) !== null && _h !== void 0 ? _h : false;
-                outText += "<a:radial scaled=\"".concat(scaled ? 1 : 0, "\"><a:off x=\"").concat(Math.round(x * 1000), "\" y=\"").concat(Math.round(y * 1000), "\"/><a:ext cx=\"").concat(Math.round(cx * 1000), "\" cy=\"").concat(Math.round(cy * 1000), "\"/></a:radial>");
+            if (safeProps.type === 'radialGradient' && safeProps.fillToRect) {
+                var tAttr = safeProps.fillToRect.t ? "t=\"".concat(safeProps.fillToRect.t * 1000, "\"") : '';
+                var rAttr = safeProps.fillToRect.r ? "r=\"".concat(safeProps.fillToRect.r * 1000, "\"") : '';
+                var bAttr = safeProps.fillToRect.b ? "b=\"".concat(safeProps.fillToRect.b * 1000, "\"") : '';
+                var lAttr = safeProps.fillToRect.l ? "l=\"".concat(safeProps.fillToRect.l * 1000, "\"") : '';
+                outText += "<a:path path=\"circle\">";
+                outText += "<a:fillToRect ".concat(tAttr, " ").concat(rAttr, " ").concat(bAttr, " ").concat(lAttr, "/>");
+                outText += "</a:path>";
             }
             if (safeProps.tileRect &&
                 (safeProps.tileRect.t ||

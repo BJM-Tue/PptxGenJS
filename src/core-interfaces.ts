@@ -208,9 +208,35 @@ interface BaseGradientShapeFillProps {
 	 */
 	rotWithShape?: boolean
 	/**
-	 * Tile rectangle
+	 * Defines the tile area for a gradient, which determines how the gradient is stretched or scaled.
+	 * The tileRect can expand or contract the gradient in all four directions (top, right, bottom, left).
 	 */
-	tileRect?: { t?: number, r?: number, b?: number, l?: number }
+	tileRect?: {
+		/**
+		 * The distance to extend or contract the gradient from the top edge of the rectangle.
+		 * Positive values shrink the gradient, while negative values expand it.
+		 * - Percentage value
+		 */
+		t?: number;
+		/**
+		 * The distance to extend or contract the gradient from the right edge of the rectangle.
+		 * Positive values shrink the gradient, while negative values expand it.
+		 * - Percentage value
+		 */
+		r?: number;
+		/**
+		 * The distance to extend or contract the gradient from the bottom edge of the rectangle.
+		 * Positive values shrink the gradient, while negative values expand it.
+		 * - Percentage value
+		 */
+		b?: number;
+		/**
+		 * The distance to extend or contract the gradient from the left edge of the rectangle.
+		 * Positive values shrink the gradient, while negative values expand it.
+		 * - Percentage value
+		 */
+		l?: number;
+	}
 	/**
 	 * Gradient flip direction
 	 * - Only used when tileRect is specified
@@ -238,22 +264,34 @@ export interface LinearGradientShapeFillProps extends BaseGradientShapeFillProps
 }
 export interface RadialGradientShapeFillProps extends BaseGradientShapeFillProps {
 	/**
-	 * Raidal gradient config
-	 * - x, y are offset, range 0-100 (percent)
-	 * - cx, cy are scope, range 0-100 (percent)
+	 * Defines the rectangular area where the gradient will be applied.
+	 * The `fillToRect` determines the position and size of the gradient's fill within the defined area.
 	 */
-	radial: {
-		x: number
-		y: number
-		cx: number
-		cy: number
+	fillToRect?: {
+		/**
+		 * The distance from the left edge of the rectangle where the gradient fill will begin.
+		 * Positive values specify how far the gradient will start from the left side.
+		 */
+		l?: number;
+	
+		/**
+		 * The distance from the top edge of the rectangle where the gradient fill will begin.
+		 * Positive values specify how far the gradient will start from the top.
+		 */
+		t?: number;
+	
+		/**
+		 * The distance from the right edge of the rectangle where the gradient fill will end.
+		 * Positive values specify how far the gradient will stop from the right side.
+		 */
+		r?: number;
+	
+		/**
+		 * The distance from the bottom edge of the rectangle where the gradient fill will end.
+		 * Positive values specify how far the gradient will stop from the bottom side.
+		 */
+		b?: number;
 	}
-	/**
-	 * Scaled
-	 * - `true` will scale the gradient with the object
-	 * @default false
-	 */
-	scaled?: boolean
 	/**
 	 * Fill type
 	 */
