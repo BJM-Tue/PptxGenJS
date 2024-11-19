@@ -1,4 +1,4 @@
-/* PptxGenJS 3.13.0-beta.1 @ 2024-11-19T09:42:48.779Z */
+/* PptxGenJS 3.13.0-beta.1 @ 2024-11-19T10:43:13.515Z */
 import JSZip from 'jszip';
 
 /******************************************************************************
@@ -3647,7 +3647,7 @@ function makeXmlCharts(rel) {
         }
         strXml += '  <c:spPr>';
         // OPTION: Fill
-        strXml += rel.opts.plotArea.fill.type === 'solid' || rel.opts.plotArea.fill.type === 'linearGradient'
+        strXml += ['solid', 'linearGradient', 'radialGradient'].includes(rel.opts.plotArea.fill.type)
             ? genXmlColorSelection(rel.opts.plotArea.fill)
             : '<a:noFill/>';
         // OPTION: Border
@@ -3694,7 +3694,7 @@ function makeXmlCharts(rel) {
     strXml += '</c:chart>';
     // D: CHARTSPACE SHAPE PROPS
     strXml += '<c:spPr>';
-    strXml += rel.opts.chartArea.fill.type === 'solid' || rel.opts.chartArea.fill.type === 'linearGradient'
+    strXml += ['solid', 'linearGradient', 'radialGradient'].includes(rel.opts.chartArea.fill.type)
         ? genXmlColorSelection(rel.opts.chartArea.fill)
         : '<a:noFill/>';
     strXml += rel.opts.chartArea.border

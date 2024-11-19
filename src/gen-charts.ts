@@ -690,7 +690,7 @@ export function makeXmlCharts (rel: ISlideRelChart): string {
 		strXml += '  <c:spPr>'
 
 		// OPTION: Fill
-		strXml += rel.opts.plotArea.fill.type === 'solid' || rel.opts.plotArea.fill.type === 'linearGradient'
+		strXml += ['solid', 'linearGradient', 'radialGradient'].includes(rel.opts.plotArea.fill.type)
 			? genXmlColorSelection(rel.opts.plotArea.fill)
 			: '<a:noFill/>'
 
@@ -739,7 +739,7 @@ export function makeXmlCharts (rel: ISlideRelChart): string {
 
 	// D: CHARTSPACE SHAPE PROPS
 	strXml += '<c:spPr>'
-	strXml += rel.opts.chartArea.fill.type === 'solid' || rel.opts.chartArea.fill.type === 'linearGradient'
+	strXml += ['solid', 'linearGradient', 'radialGradient'].includes(rel.opts.chartArea.fill.type)
 		? genXmlColorSelection(rel.opts.chartArea.fill)
 		: '<a:noFill/>'
 	strXml += rel.opts.chartArea.border
