@@ -1,4 +1,4 @@
-/* PptxGenJS 3.13.0-beta.1 @ 2024-11-18T09:15:22.994Z */
+/* PptxGenJS 3.13.0-beta.1 @ 2024-11-19T09:42:48.779Z */
 import JSZip from 'jszip';
 
 /******************************************************************************
@@ -825,7 +825,7 @@ function createGlowElement(options, defaults) {
  * @returns XML string
  */
 function genXmlColorSelection(props) {
-    var _a, _b, _c, _d, _e, _f, _g;
+    var _a, _b, _c, _d, _e, _f, _g, _h;
     if (!props) {
         return '';
     }
@@ -848,7 +848,8 @@ function genXmlColorSelection(props) {
             outText += "<a:solidFill>".concat(createColorElement((_c = safeProps.color) !== null && _c !== void 0 ? _c : '', internalElements), "</a:solidFill>");
             break;
         }
-        case 'linearGradient': {
+        case 'linearGradient':
+        case 'radialGradient': {
             var stops = (_d = safeProps.stops) !== null && _d !== void 0 ? _d : [];
             var rotWithShape = (_e = safeProps.rotWithShape) !== null && _e !== void 0 ? _e : true;
             var flip = (_f = safeProps.flip) !== null && _f !== void 0 ? _f : 'none';
@@ -856,18 +857,32 @@ function genXmlColorSelection(props) {
             if (stops.length > 0) {
                 outText += '<a:gsLst>';
                 outText += stops.map(function (_a) {
-                    var position = _a.position, stopColor = _a.color, transparency = _a.transparency;
-                    var stopInternalElements = transparency
-                        ? "<a:alpha val=\"".concat(Math.round((100 - transparency) * 1000), "\"/>")
-                        : '';
+                    var position = _a.position, stopColor = _a.color, transparency = _a.transparency, brightness = _a.brightness;
+                    var stopInternalElements = '';
+                    if (transparency) {
+                        stopInternalElements += "<a:alpha val=\"".concat(Math.round((100 - transparency) * 1000), "\"/>");
+                    }
+                    if (brightness !== undefined && brightness !== null) {
+                        if (brightness >= 0) {
+                            stopInternalElements += "<a:lumMod val=\"".concat(100000 - Math.round(brightness * 1000), "\"/><a:lumOff val=\"").concat(Math.round(brightness * 1000), "\"/>");
+                        }
+                        else {
+                            stopInternalElements += "<a:lumMod val=\"".concat(100000 + Math.round(brightness * 1000), "\"/><a:lumOff val=\"0\"/>");
+                        }
+                    }
                     return "<a:gs pos=\"".concat(position * 1000, "\">").concat(createColorElement(stopColor, stopInternalElements), "</a:gs>");
                 }).join('');
                 outText += '</a:gsLst>';
             }
-            if (safeProps.angle) {
+            if (safeProps.type === 'linearGradient' && safeProps.angle) {
                 var ang = convertRotationDegrees(safeProps.angle);
                 var scaled = (_g = safeProps.scaled) !== null && _g !== void 0 ? _g : false;
                 outText += "<a:lin ang=\"".concat(ang, "\" scaled=\"").concat(scaled ? 1 : 0, "\"/>");
+            }
+            if (safeProps.type === 'radialGradient' && safeProps.radial) {
+                var _j = safeProps.radial, x = _j.x, y = _j.y, cx = _j.cx, cy = _j.cy;
+                var scaled = (_h = safeProps.scaled) !== null && _h !== void 0 ? _h : false;
+                outText += "<a:radial scaled=\"".concat(scaled ? 1 : 0, "\"><a:off x=\"").concat(Math.round(x * 1000), "\" y=\"").concat(Math.round(y * 1000), "\"/><a:ext cx=\"").concat(Math.round(cx * 1000), "\" cy=\"").concat(Math.round(cy * 1000), "\"/></a:radial>");
             }
             if (safeProps.tileRect &&
                 (safeProps.tileRect.t ||

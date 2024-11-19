@@ -3,7 +3,7 @@
  */
 
 import { EMU, REGEX_HEX_COLOR, DEF_FONT_COLOR, ONEPT, SchemeColor, SCHEME_COLORS } from './core-enums'
-import { PresLayout, TextGlowProps, PresSlide, SolidShapeFillProps, Color, ShapeLineProps, Coord, ShadowProps, LinearGradientShapeFillProps } from './core-interfaces'
+import { PresLayout, TextGlowProps, PresSlide, Color, ShapeLineProps, Coord, ShadowProps, ShapeFillProps } from './core-interfaces'
 
 /**
  * Translates any type of `x`/`y`/`w`/`h` prop to EMU
@@ -185,14 +185,14 @@ export function createGlowElement (options: TextGlowProps, defaults: TextGlowPro
  * @param {Color | ShapeFillProps | ShapeLineProps} props fill props
  * @returns XML string
  */
-export function genXmlColorSelection (props: Color | SolidShapeFillProps | ShapeLineProps | LinearGradientShapeFillProps): string {
+export function genXmlColorSelection (props: Color | ShapeFillProps | ShapeLineProps): string {
 	if (!props) {
 		return ''
 	}
 
 	let outText = ''
 
-	let safeProps: SolidShapeFillProps | ShapeLineProps | LinearGradientShapeFillProps = {}
+	let safeProps: ShapeFillProps | ShapeLineProps = {}
 	if (typeof props === 'string') {
 		safeProps.type = 'solid'
 		safeProps.color = props
@@ -211,7 +211,8 @@ export function genXmlColorSelection (props: Color | SolidShapeFillProps | Shape
 			break
 		}
 
-		case 'linearGradient': {
+		case 'linearGradient':
+		case 'radialGradient': {
 			const stops = safeProps.stops ?? []
 			const rotWithShape = safeProps.rotWithShape ?? true
 			const flip = safeProps.flip ?? 'none'
@@ -222,10 +223,20 @@ export function genXmlColorSelection (props: Color | SolidShapeFillProps | Shape
 				outText += '<a:gsLst>'
 
 				outText += stops.map(
-					({ position, color: stopColor, transparency }) => {
-						const stopInternalElements = transparency
-							? `<a:alpha val="${Math.round((100 - transparency) * 1000)}"/>`
-							: ''
+					({ position, color: stopColor, transparency, brightness }) => {
+						let stopInternalElements = ''
+						
+						if (transparency) {
+							stopInternalElements += `<a:alpha val="${Math.round((100 - transparency) * 1000)}"/>`
+						}
+
+						if (brightness !== undefined && brightness !== null) {
+							if (brightness >= 0) {
+								stopInternalElements += `<a:lumMod val="${100000 - Math.round(brightness * 1000)}"/><a:lumOff val="${Math.round(brightness * 1000)}"/>`;
+							} else {
+								stopInternalElements += `<a:lumMod val="${100000 + Math.round(brightness * 1000)}"/><a:lumOff val="0"/>`;
+							}
+						}
 
 						return `<a:gs pos="${position * 1000}">${createColorElement(stopColor, stopInternalElements)}</a:gs>`
 					}
@@ -234,10 +245,16 @@ export function genXmlColorSelection (props: Color | SolidShapeFillProps | Shape
 				outText += '</a:gsLst>'
 			}
 
-			if (safeProps.angle) {
+			if (safeProps.type === 'linearGradient' && safeProps.angle) {
 				const ang = convertRotationDegrees(safeProps.angle)
 				const scaled = safeProps.scaled ?? false
 				outText += `<a:lin ang="${ang}" scaled="${scaled ? 1 : 0}"/>`
+			}
+
+			if (safeProps.type === 'radialGradient' && safeProps.radial) {
+				const { x, y, cx, cy } = safeProps.radial;
+				const scaled = safeProps.scaled ?? false
+				outText += `<a:radial scaled="${scaled ? 1 : 0}"><a:off x="${Math.round(x * 1000)}" y="${Math.round(y * 1000)}"/><a:ext cx="${Math.round(cx * 1000)}" cy="${Math.round(cy * 1000)}"/></a:radial>`;
 			}
 
 			if (

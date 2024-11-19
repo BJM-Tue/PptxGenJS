@@ -240,6 +240,7 @@ declare namespace PptxGenJS {
 		'curvedLeftArrow' = 'curvedLeftArrow',
 		'curvedRightArrow' = 'curvedRightArrow',
 		'curvedUpArrow' = 'curvedUpArrow',
+		'custGeom' = 'custGeom',
 		'decagon' = 'decagon',
 		'diagStripe' = 'diagStripe',
 		'diamond' = 'diamond',
@@ -314,8 +315,8 @@ declare namespace PptxGenJS {
 		'mathNotEqual' = 'mathNotEqual',
 		'mathPlus' = 'mathPlus',
 		'moon' = 'moon',
-		'nonIsoscelesTrapezoid' = 'nonIsoscelesTrapezoid',
 		'noSmoking' = 'noSmoking',
+		'nonIsoscelesTrapezoid' = 'nonIsoscelesTrapezoid',
 		'notchedRightArrow' = 'notchedRightArrow',
 		'octagon' = 'octagon',
 		'parallelogram' = 'parallelogram',
@@ -440,6 +441,7 @@ declare namespace PptxGenJS {
 		CURVED_RIGHT_ARROW = 'curvedRightArrow',
 		CURVED_UP_ARROW = 'curvedUpArrow',
 		CURVED_UP_RIBBON = 'ellipseRibbon2',
+		CUST_GEOM = 'custGeom',
 		DECAGON = 'decagon',
 		DIAGONAL_STRIPE = 'diagStripe',
 		DIAMOND = 'diamond',
@@ -596,6 +598,7 @@ declare namespace PptxGenJS {
 		'BAR' = 'bar',
 		'BAR3D' = 'bar3D',
 		'BUBBLE' = 'bubble',
+		'BUBBLE3D' = 'bubble3D',
 		'DOUGHNUT' = 'doughnut',
 		'LINE' = 'line',
 		'PIE' = 'pie',
@@ -617,7 +620,7 @@ declare namespace PptxGenJS {
 
 	// @source `core-interfaces.d.ts` (via import)
 	// @code `import { CHART_NAME, PLACEHOLDER_TYPES, SHAPE_NAME, SLIDE_OBJECT_TYPES, TEXT_HALIGN, TEXT_VALIGN, WRITE_OUTPUT_TYPE } from './core-enums'`
-	export type CHART_NAME = 'area' | 'bar' | 'bar3D' | 'bubble' | 'doughnut' | 'line' | 'pie' | 'radar' | 'scatter'
+	export type CHART_NAME = 'area' | 'bar' | 'bar3D' | 'bubble' | 'bubble3D' | 'doughnut' | 'line' | 'pie' | 'radar' | 'scatter'
 	export enum PLACEHOLDER_TYPES {
 		'title' = 'title',
 		'body' = 'body',
@@ -676,6 +679,7 @@ declare namespace PptxGenJS {
 		| 'curvedLeftArrow'
 		| 'curvedRightArrow'
 		| 'curvedUpArrow'
+		| 'custGeom'
 		| 'decagon'
 		| 'diagStripe'
 		| 'diamond'
@@ -894,7 +898,7 @@ declare namespace PptxGenJS {
 		 */
 		data?: string
 	}
-	export interface BackgroundProps extends DataOrPathProps, ShapeFillProps {
+	export interface BackgroundProps extends DataOrPathProps, SolidShapeFillProps {
 		/**
 		 * Color (hex format)
 		 * @deprecated v3.6.0 - use `ShapeFillProps` instead
@@ -1000,7 +1004,95 @@ declare namespace PptxGenJS {
 		rotateWithShape?: boolean
 	}
 	// used by: shape, table, text
-	export interface ShapeFillProps {
+	export interface GradientStop {
+		/**
+		 * Position (percent)
+		 * - range: 0-100
+		 */
+		position: number
+		/**
+		 * Gradient stop color
+		 * - `HexColor` or `ThemeColor`
+		 * @example 'FF0000' // hex color (red)
+		 * @example pptx.SchemeColor.text1 // Theme color (Text1)
+		 */
+		color: Color
+		/**
+		 * Transparency (percent)
+		 * - range: 0-100
+		 * @default 0
+		 */
+		transparency?: number
+		/**
+		 * Brightness (percent)
+		 * - range: -100-100
+		 * @default 0
+		 */
+		brightness?: number
+	}
+	interface BaseGradientShapeFillProps {
+		/**
+		 * Gradient stops
+		 */
+		stops: GradientStop[]
+		/**
+		 * Rotate with shape
+		 * @default true
+		 */
+		rotWithShape?: boolean
+		/**
+		 * Tile rectangle
+		 */
+		tileRect?: { t?: number, r?: number, b?: number, l?: number }
+		/**
+		 * Gradient flip direction
+		 * - Only used when tileRect is specified
+		 * @default 'none'
+		 */
+		flip?: 'none' | 'x' | 'xy' | 'y'
+	}
+	export interface LinearGradientShapeFillProps extends BaseGradientShapeFillProps {
+		/**
+		 * Linear gradient angle (degrees)
+		 * - range: 0-359
+		 * @default 0
+		 */
+		angle?: number
+		/**
+		 * Scaled
+		 * - `true` will scale the gradient with the object
+		 * @default false
+		 */
+		scaled?: boolean
+		/**
+		 * Fill type
+		 */
+		type: 'linearGradient'
+	}
+	export interface RadialGradientShapeFillProps extends BaseGradientShapeFillProps {
+		/**
+		 * Raidal gradient config
+		 * - x, y are offset, range 0-100 (percent)
+		 * - cx, cy are scope, range 0-100 (percent)
+		 */
+		radial: {
+			x: number
+			y: number
+			cx: number
+			cy: number
+		}
+		/**
+		 * Scaled
+		 * - `true` will scale the gradient with the object
+		 * @default false
+		 */
+		scaled?: boolean
+		/**
+		 * Fill type
+		 */
+		type: 'radialGradient'
+	}
+	export interface SolidShapeFillProps {
 		/**
 		 * Fill color
 		 * - `HexColor` or `ThemeColor`
@@ -1027,7 +1119,8 @@ declare namespace PptxGenJS {
 		 */
 		alpha?: number
 	}
-	export interface ShapeLineProps extends ShapeFillProps {
+	export type ShapeFillProps = RadialGradientShapeFillProps | LinearGradientShapeFillProps | SolidShapeFillProps
+	export interface ShapeLineProps extends SolidShapeFillProps {
 		/**
 		 * Line width (pt)
 		 * @default 1
