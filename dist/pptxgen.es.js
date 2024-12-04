@@ -1,4 +1,4 @@
-/* PptxGenJS 3.13.0-beta.1 @ 2024-11-19T16:58:05.085Z */
+/* PptxGenJS 3.13.0-beta.1 @ 2024-12-04T07:23:50.069Z */
 import JSZip from 'jszip';
 
 /******************************************************************************
@@ -3516,7 +3516,7 @@ function createExcelWorksheet(chartObject, zip) {
  * @return {string} XML
  */
 function makeXmlCharts(rel) {
-    var _a, _b;
+    var _a, _b, _c, _d, _e, _f;
     var strXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
     var usesSecondaryValAxis = false;
     // STEP 1: Create chart
@@ -3651,7 +3651,7 @@ function makeXmlCharts(rel) {
         }
         strXml += '  <c:spPr>';
         // OPTION: Fill
-        strXml += ['solid', 'linearGradient', 'radialGradient'].includes(rel.opts.plotArea.fill.type)
+        strXml += (((_c = rel.opts.plotArea.fill) === null || _c === void 0 ? void 0 : _c.color) || ['solid', 'linearGradient', 'radialGradient'].includes((_d = rel.opts.plotArea.fill) === null || _d === void 0 ? void 0 : _d.type))
             ? genXmlColorSelection(rel.opts.plotArea.fill)
             : '<a:noFill/>';
         // OPTION: Border
@@ -3698,7 +3698,7 @@ function makeXmlCharts(rel) {
     strXml += '</c:chart>';
     // D: CHARTSPACE SHAPE PROPS
     strXml += '<c:spPr>';
-    strXml += ['solid', 'linearGradient', 'radialGradient'].includes(rel.opts.chartArea.fill.type)
+    strXml += (((_e = rel.opts.chartArea.fill) === null || _e === void 0 ? void 0 : _e.color) || ['solid', 'linearGradient', 'radialGradient'].includes((_f = rel.opts.chartArea.fill) === null || _f === void 0 ? void 0 : _f.type))
         ? genXmlColorSelection(rel.opts.chartArea.fill)
         : '<a:noFill/>';
     strXml += rel.opts.chartArea.border

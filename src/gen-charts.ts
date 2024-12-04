@@ -19,7 +19,7 @@ import {
 	LETTERS,
 	ONEPT,
 } from './core-enums'
-import { IChartOptsLib, ISlideRelChart, ShadowProps, IChartPropsTitle, OptsChartGridLine, IOptsChartData, ChartLineCap } from './core-interfaces'
+import { IChartOptsLib, ISlideRelChart, ShadowProps, IChartPropsTitle, OptsChartGridLine, IOptsChartData, ChartLineCap, SolidShapeFillProps } from './core-interfaces'
 import { createColorElement, genXmlColorSelection, convertRotationDegrees, encodeXmlEntities, getUuid, valToPts } from './gen-utils'
 import JSZip from 'jszip'
 
@@ -690,7 +690,7 @@ export function makeXmlCharts (rel: ISlideRelChart): string {
 		strXml += '  <c:spPr>'
 
 		// OPTION: Fill
-		strXml += ['solid', 'linearGradient', 'radialGradient'].includes(rel.opts.plotArea.fill.type)
+		strXml += ((rel.opts.plotArea.fill as SolidShapeFillProps)?.color || ['solid', 'linearGradient', 'radialGradient'].includes(rel.opts.plotArea.fill?.type))
 			? genXmlColorSelection(rel.opts.plotArea.fill)
 			: '<a:noFill/>'
 
@@ -739,7 +739,7 @@ export function makeXmlCharts (rel: ISlideRelChart): string {
 
 	// D: CHARTSPACE SHAPE PROPS
 	strXml += '<c:spPr>'
-	strXml += ['solid', 'linearGradient', 'radialGradient'].includes(rel.opts.chartArea.fill.type)
+	strXml += ((rel.opts.chartArea.fill as SolidShapeFillProps)?.color || ['solid', 'linearGradient', 'radialGradient'].includes(rel.opts.chartArea.fill?.type))
 		? genXmlColorSelection(rel.opts.chartArea.fill)
 		: '<a:noFill/>'
 	strXml += rel.opts.chartArea.border
